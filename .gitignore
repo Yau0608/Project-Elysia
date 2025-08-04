@@ -1,0 +1,7 @@
+# In Project-Elysia/.gitignore
+
+# Ignore Python's cache files
+__pycache__/
+
+# Ignore our secret configuration file
+core/config.py
