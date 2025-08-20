@@ -4,6 +4,7 @@ import pyaudio
 import wave
 import keyboard
 import pyperclip
+import wave
 from datetime import datetime
 
 class SpeechRecognizer:
@@ -92,4 +93,27 @@ class SpeechRecognizer:
         except Exception as e:
             print(f"Error transcribing file: {e}")
             return f"Error during transcription: {str(e)}"
+        
+    
+    def transcribe_audio_data(self, audio_data):
+        """
+        Transcribes audio data received as bytes.
+        This is the new recipe for handling audio from Unity.
+        """
+        temp_filename = "temp_recording.wav"
+
+        # These parameters must match the audio from Unity
+        CHANNELS = 1
+        SAMPLE_WIDTH = 2  # 2 bytes for 16-bit audio
+        FRAME_RATE = 44100 # Must match the rate in Microphone.Start
+
+        # This is the magic: we create a valid WAV file from the raw data
+        with wave.open(temp_filename, 'wb') as wf:
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(SAMPLE_WIDTH)
+            wf.setframerate(FRAME_RATE)
+            wf.writeframes(audio_data)
+
+        # Now we just call our existing transcribe_file method.
+        return self.transcribe_file(temp_filename)
 

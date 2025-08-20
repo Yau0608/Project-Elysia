@@ -5,3 +5,6 @@ __pycache__/
 
 # Ignore our secret configuration file
 core/config.py
+
+# Ignore Cyrene system prompt
+Cyrene.txt
