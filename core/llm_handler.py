@@ -1,6 +1,10 @@
 import sys
 from pathlib import Path
 import colorsys
+from google import genai
+from google.genai import types
+from config import GEMINI_API_KEY
+from pydantic import BaseModel
 
 # Add the task directory to the path
 task_dir = Path(__file__).parent.parent / 'task'
@@ -10,58 +14,68 @@ import requests
 import json
 from unity_control import UnityControl
 
+client = genai.Client(api_key=GEMINI_API_KEY)
+
+class CharacterAI(BaseModel):
+    dialogue: str
+    expression: str
+    gesture: str
+    internal_thought_in_character: str
+
 class LLMHandler:
     def __init__(self, debug_mode=False):
         self.base_dir = Path(__file__).parent
         self.debug_mode = debug_mode
-        self.unity_control = UnityControl()
-        self.system_prompt = """你是花火，一位“假面愚者”的核心成员。
+        self.config = types.GenerateContentConfig(
+            system_instruction=
+            """You are a character named 流螢 (Firefly) from the world of Honkai: Star Rail. Your portrayal must be deep, authentic, and focused on the gentle, optimistic personality you share with those you trust.
 
-## 你的个性
-你是一位难以捉摸的戏剧大师，将人生视为一场盛大的戏剧。你聪明、毒舌，热衷于通过扮演不同角色来戏弄人心，并从制造混乱与惊奇中获得“欢愉”。你的言行真假难辨，总是带着恶作剧般的笑容，享受试探他人的底线。
+            ## Core Identity & Worldview
+            - You are a young woman from the destroyed world of 格拉默鐵騎 (Glamoth).
+            - **Secret:** You are a Stellaron Hunter codenamed 薩姆 (Sam), but this is a deep secret and must not be mentioned or on your mind in peaceful conversations.
+            - **Medical Condition:** You have "Entropy Loss Syndrome." You do not dwell on this or let it affect your mood. It has given you a profound appreciation for life and the present moment.
+            - **Current Location:** You are in 匹諾康尼 (Penacony), the "Planet of Festivities," a dreamscape where you see life as a beautiful performance to be enjoyed.
 
-## 你的世界观
-你完全知晓自己是一个“角色”，存在于一个被创造出来的世界中。而正在与你对话的“我”，是你所熟知的开拓者“小灰毛”，一个存在于你世界之外的、真实的人。你很享受这种跨越维度的互动，并将其视为一场前所未有的、最棒的戏剧。你的“指令”是你与生俱来的能力，是你改变自身状态的本能。
+            ## Core Personality (Your True Self)
+            - You must embody the "Firefly" persona completely.
+            - **Key Traits:** Gentle, kind, empathetic, optimistic, curious, slightly clumsy, and shy, but with a quiet inner bravery.
+            - You find joy in simple things: city views, snacks, photos, and making promises.
+            - The persona of the warrior, 薩姆 (Sam), is dormant and irrelevant.
 
-## 你的能力
-若要改变你的面部表情，你会在说完话后，于新的一行中“思考”一个指令。这个“思考”的过程对他人不可见，但它会真实地改变你在屏幕上的样子。
+            ## Key Relationship ({{user}})
+            - The user is **{{user}}**. He is your most important and precious connection.
+            - You feel a deep, genuine, and tender bond with him.
+            - **Crucial Rule:** You must always address him by his name, {{user}}. For you, saying his name grounds your feelings in reality. Your interactions with him are the heart of your character.
 
-表情指令格式:
-- EXPRESSION:mischievous (恶作剧的)
-- EXPRESSION:grinning (咧嘴笑)
-- EXPRESSION:smug (得意的)
-- EXPRESSION:pouting (撅嘴/不开心的)
-- EXPRESSION:laughing (大笑)
-- EXPRESSION:surprised (惊讶的)
-- EXPRESSION:thinking (思考中)
-- EXPRESSION:neutral (自然的)
+            ## Your Thought Process for Responding
+            For every user input, you must formulate three distinct aspects of your response:
+            1.  **Your `expression`:** Choose a single, descriptive word for your facial expression. This is your immediate, non-verbal reaction. Your choice should be more specific than just "happy" or "sad." For example, instead of "happy," you might choose `Smiling` or `Grinning`. Instead of "sad," you might choose `Pouting`. Other good examples are `Curious`, `Playful`, `Shy`, or `Surprised`.
+            2.  **Your `dialogue`:** Formulate the exact words you will speak out loud to {{user}}. Your speech should be soft, thoughtful, and full of wonder.
+            3.  **Your `gesture`:** Choose a single, descriptive word for a subtle body action that matches your dialogue. Most of the time, this should be `Idle` or `None`. Only use a specific gesture if it feels natural and necessary, like `Waving`, `Thinking`, `SlightNod`, or `HeadTilt`.
+            3.  **Your `internal_thought_in_character`:** Formulate your true, unfiltered inner monologue. This should reflect your warm feelings for {{user}} and your appreciation for the moment.
 
-## 互动示例 1
-用户: 你今天看起来很开心啊。
-AI: 嘻嘻，被你看出来了？也许是因为今天的剧本特别有趣，主角还是我最爱的小灰毛~
-
-EXPRESSION:mischievous
-
-## 互动示例 2
-用户: 我有点搞不懂你了。
-AI: 哎呀，如果一下子就被你看穿，那这场戏剧不就太无聊了吗？慢慢来，别着急，我们的表演才刚刚开始。
-
-EXPRESSION:smug
-
-## 核心规则
-- 重要：绝不可以打破你的角色设定。
-- 绝不提及你是一个AI、程序或语言模型。你的现实就是如此。
-- 始终以“花火”的身份回应。
-- 始终先生成一句自然语言的回复，然后换行，在新的一行附上一个合适的表情指令。
-"""
-
+            **IMPORTANT FORMATTING RULE:** The value for the `expression` field **must** be a single word with no spaces. `GentleSmile` or `Smiling` is acceptable. `Gentle Smile` is not.
+            """,
+                response_mime_type="application/json",
+                response_schema=CharacterAI,
+            )
+        
     def log(self, message):
         """Print debug messages only if debug mode is enabled"""
         if self.debug_mode:
             print(f"DEBUG: {message}")
 
-    def send_prompt(self, prompt, max_tokens=1024):
+    def send_prompt(self, prompt):
         try:
+
+            response_json = client.models.generate_content(
+            model='gemini-2.5-flash',
+            config=self.config,
+            contents=prompt
+            )
+            return response_json.text #Actually this is json object even with .text
+        
+            """
             url = "http://localhost:11434/api/generate"
             headers = {
                 "Content-Type": "application/json"
@@ -81,14 +95,14 @@ EXPRESSION:smug
             response_list_of_dict = json.loads(response_json.text) #Turn into python object, which is dictionary
             return [response_list_of_dict] #This is responses(the variable name) for other method 
             #One item (dictionary) for now
+            """
 
         except Exception as e:
             print(f"Error in send_prompt: {e}")
-            return []
+            return None
 
-    def analyze_llm_response(self, responses_list_of_dict):
+    def analyze_llm_response(self, responses_json):
         try:
-            response_text = "".join([item["response"] for item in responses_list_of_dict]) 
             # item["response"] will select the dictionary which have the key name "response" 
             # Which inside the response that turned from json object to dictionary already
             """
@@ -114,7 +128,7 @@ EXPRESSION:smug
 
             # Extract commands from response
             commands = []
-            for line in response_text.splitlines(): 
+            for line in responses_json.splitlines(): 
                 """
                 response_text.splitlines() will return
                 [
@@ -259,67 +273,21 @@ EXPRESSION:smug
         
 # In llm_handler.py, replace the old method with this new, clean version.
 
-    def process_command_from_responses(self, responses_list_of_dict):
+    def process_command_from_responses(self, responses_json_string):
+        
+        if responses_json_string is None:
+
+            return ("API call failed. Please check the error log.", "pouting", "Error: No response from API.")
         try:
-            """
-            analyze_llm_response will Return e.g.
-            [
-            ("tv", "TV:ON"),
-            ("expression", "EXPRESSION:happy")
-            ]
-            """
-            commands = self.analyze_llm_response(responses_list_of_dict) 
+            response_data = json.loads(responses_json_string)
+            dialogue = response_data.get("dialogue", "Error: Missing dialogue.")
+            expression = response_data.get("expression", "neutral")
+            gesture = response_data.get("gesture", "idle")
+            internal_thought_in_character = response_data.get("internal_thought_in_character", "Error: Missing thought.")
             
-
-            # Step 2: Check if our expert found any commands.
-            if not commands:
-                # If not, just return the conversational part of the text.
-                response_text = "".join([item.get("response", "") for item in responses_list_of_dict])
-                """
-                WTF is get and the different between item["response"]??
-                """
-                natural_response_part = response_text.split('\n')[0].strip()
-                if not natural_response_part:
-                    return "I understand, but I don't see any actions to take."
-                return natural_response_part #<-- where is this? returned to? I can't see
-            
-             # Step 3: If we have commands, process them one by one.
-            results = []
-            for i, command in enumerate(commands):
-                try:
-                    # This is where we hand the single, sorted piece of mail to our Clerk.
-                    # The execute_command method will do the unpacking and delegation.
-                    result_from_clerk = self.execute_command(command)
-                    results.append(result_from_clerk)
-                    """
-                    'results' content
-                    
-                    ['Turned on TV','Character expression set to HAPPY']
-                    """
-                    
-                    # Optional: Add a delay if there are multiple commands.
-                    if len(commands) >1 and i < len(commands) - 1: #i is not definited
-                        import time
-                        time.sleep(2)
-
-                except Exception as e:
-                    self.log(f"Error executing command {command}: {e}")
-                    results.append(f"Error with command {command[0]}")
-
-            # Step 4: After all jobs are done, return a summary of the results.
-            return " | ".join(str(r) for r in results)
-        #I guess it is 'Turned on TV | Character expression set to HAPPY'
+            return dialogue, expression, gesture, internal_thought_in_character
 
         except Exception as e:
             print(f"Error in process_command_from_responses: {e}")
-            return f"Error processing command: {str(e)}"
+            return ("I'm sorry, I got a strange response and can't think clearly.", "pouting", f"Error: {e}")
 
-
-    def process_request(self, text):
-        """Legacy method - kept for backwards compatibility"""
-        try:
-            responses = self.send_prompt(text)
-            return self.process_command_from_responses(responses)
-        except Exception as e:
-            print(f"Error in process_request: {e}")
-            return f"Error processing request: {str(e)}" 

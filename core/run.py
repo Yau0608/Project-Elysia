@@ -49,28 +49,30 @@ def main():
         
         # Process with LLM
         print("\nProcessing with LLM...")
-        responses_list_of_dict = llm_handler.send_prompt(transcribed_text)
+        responses_json = llm_handler.send_prompt(transcribed_text)
         
         """
         Try to get the response from 
-        """
-        response_text = "".join([item.get("response", "") for item in responses_list_of_dict])
         
+        response_text = "".join([item.get("response", "") for item in responses_list_of_dict])
+        """
         # Display a cleaner format focusing on the response
         print("\nResponse:")
         print("-" * 40)
-        print(response_text)
+        print(responses_json)
         print("-" * 40)
 
         # Process and execute the command using the already fetched response
-        result = llm_handler.process_command_from_responses(responses_list_of_dict)
-        print(f"Action: {result}")
-        
+        dialogue, expression, internal_thought_in_character, gesture = llm_handler.process_command_from_responses(responses_json)
+        print(f"\nAction: Set expression to '{expression}'")
+        print(f"Internal Thought: {internal_thought_in_character}")
+        print(f"Gesture: {gesture}")
+
         # Generate voice response if enabled
-        if voice_response_enabled and response_text:
+        if voice_response_enabled and dialogue and not dialogue.startswith("API call failed"):
             print("\nGenerating voice response...")
             # No need for a separate clean_for_speech call - the TTS handler will do this internally
-            audio_file = tts_handler.text_to_speech(response_text, clean_commands=True)
+            audio_file = tts_handler.text_to_speech(dialogue, clean_commands=False)
             
             if audio_file:
                 print(f"Voice response played and saved to: {audio_file}")
