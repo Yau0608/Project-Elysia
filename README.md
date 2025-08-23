@@ -1,6 +1,9 @@
 # Project Elysia
 
-![Project Elysia Demo](docs/demo.mp4)
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/98d98c72-10f7-4f97-b188-faf507eff20f" width="80%" autoplay loop muted playsinline>
+  </video>
+</div>
 
 A real-time, voice-controlled AI character engine built in Python and Unity. This project integrates a state-of-the-art cloud LLM (Google Gemini) with local, high-performance STT/TTS systems to create a foundation for truly interactive and emotionally intelligent digital agents.
 
