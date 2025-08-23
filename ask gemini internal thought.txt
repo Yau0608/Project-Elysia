@@ -1,3 +1,0 @@
-Btw I would also like to add the internal thought on the unity screen for the character, like I can press a button next to that UI to show or hide the text
-
-But this is strange, I clearly add the line and attack the InternalThought to the SystemManagers already, why the internal thought not shown on the game ?

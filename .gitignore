@@ -8,3 +8,4 @@ core/config.py
 
 # Ignore Cyrene system prompt
 Cyrene.txt
+core/cyrene_character_card.json

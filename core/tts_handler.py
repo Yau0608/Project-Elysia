@@ -9,13 +9,13 @@ from io import BytesIO
 import urllib.parse
 
 # Hard-coded reference audio configuration
-DEFAULT_REF_AUDIO = "C:\\Users\\Yau\\Documents\\YauProject\\GPT-SoVITS-v2pro-20250604\\test\\FireflySpeak.wav"
-DEFAULT_PROMPT_TEXT = "因为你身上别着星穹列车的徽章呀，我在大银幕上见过！"
+DEFAULT_REF_AUDIO = "C:\\Users\\Yau\\Documents\\YauProject\\GPT-SoVITS-v2pro-20250604\\test\\Ely1.wav"
+DEFAULT_PROMPT_TEXT = "那我想，芽衣一定也已经迫不及待了，对不对？好了，我们边走边说吧。"
 DEFAULT_PROMPT_LANG = "zh"
 DEFAULT_API_URL = "http://127.0.0.1:9880"
 DEFAULT_TEXT_LANG = "zh"
-DEFAULT_GPT_URL = "C:\\Users\\Yau\\Documents\\YauProject\\GPT-SoVITS-v2pro-20250604\\GPT_weights_v4\\流萤_ZH-e10.ckpt"
-DEFAULT_SOVITS_URL = "C:\\Users\\Yau\\Documents\\YauProject\\GPT-SoVITS-v2pro-20250604\\SoVITS_weights_v4\\流萤_ZH_e10_s670_l32.pth"
+DEFAULT_GPT_URL = "C:\\Users\\Yau\\Documents\\YauProject\\GPT-SoVITS-v2pro-20250604\\GPT_weights_v4\\爱莉希雅-e10.ckpt"
+DEFAULT_SOVITS_URL = "C:\\Users\\Yau\\Documents\\YauProject\\GPT-SoVITS-v2pro-20250604\\SoVITS_weights_v4\\爱莉希雅_e10_s270_l32.pth"
 
 class TTSHandler:
     """

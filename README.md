@@ -1,35 +1,39 @@
 # Project Elysia
 
-A voice-controlled AI character engine built in Python. Integrates local LLMs (Llama 3), TTS (GPT-SoVITS), and STT (Faster-Whisper) to power a real-time conversational agent for interactive applications.
+![Project Elysia Demo](docs/demo.mp4)
+
+A real-time, voice-controlled AI character engine built in Python and Unity. This project integrates a state-of-the-art cloud LLM (Google Gemini) with local, high-performance STT/TTS systems to create a foundation for truly interactive and emotionally intelligent digital agents.
 
 ---
 
 ## About The Project
 
-Project Elysia is the first step towards creating a truly interactive and emotionally intelligent digital character. Inspired by the dream of creating immersive virtual worlds, this project focuses on building the core "brain" and "voice" of an AI persona.
+Project Elysia is the first step towards creating a truly interactive and emotionally intelligent digital character. Inspired by the dream of creating immersive virtual worlds, this project focuses on building the core "brain" and "voice" of an AI persona, rendered and controlled in real-time within the Unity game engine.
 
-The system is designed to be a modular platform for experimenting with different AI technologies. It currently uses a local large language model to generate responses for a character named "花火" (Sparkle), a mischievous and intelligent "Masked Fool."
+The system is designed to be a modular platform. While this version uses the powerful Gemini Pro API for the best possible conversational quality, the architecture can easily be adapted to use local models like Llama for offline use. The current character persona is a custom-designed character named "昔涟" (Cyrene).
 
-This project was a deep dive into the practical challenges of building an end-to-end AI application, from setting up the development environment with GPU acceleration to engineering a stable character persona through carefully crafted system prompts.
+This project was a deep dive into the practical challenges of building an end-to-end AI application, from setting up a professional development environment with GPU acceleration to engineering a consistent and believable character persona through advanced prompt engineering and structured data formats.
 
 ## Core Features
 
-*   **Real-time Voice Interaction:** Uses the microphone to listen for commands and responds with a synthesized voice.
-*   **AI Character Persona:** Leverages a local LLM (Llama 3.1) with a detailed system prompt to create a consistent and engaging character.
-*   **High-Quality Voice Cloning (TTS):** Integrates with GPT-SoVITS to generate expressive, human-like speech from a custom voice model.
-*   **High-Performance Speech-to-Text (STT):** Uses the `faster-whisper` library for fast and accurate transcription on the local machine.
-*   **Modular, Object-Oriented Design:** Built in Python with separate classes for each core component (`LLMHandler`, `TTSHandler`, `SpeechRecognizer`), making the system easy to extend and maintain.
+*   **Real-time Voice Interaction:** A full pipeline from microphone input in Unity to a real-time, lip-synced voice response from the character.
+*   **Advanced AI Persona:** Leverages **Google's Gemini Pro API** with a rich, structured character card (W++ format) and JSON Mode for consistent, high-quality, in-character responses.
+*   **High-Quality Voice Cloning (TTS):** Integrates with a local **GPT-SoVITS** `api_v2.py` server to generate expressive, human-like speech from a custom-trained voice model.
+*   **High-Performance Speech-to-Text (STT):** Uses the `faster-whisper` library for fast and accurate transcription of user audio sent from Unity.
+*   **Modular Architecture:** Built with a clean Python backend and a Unity frontend.
+    *   **Python:** Object-Oriented design with separate handlers for the LLM, STT, and TTS. A WebSocket server (`elysia_server.py`) manages the real-time communication.
+    *   **Unity (C#):** A component-based system with separate controllers for expressions, gestures, and UI management, allowing for easy expansion.
 
 ## How It Works
 
-The application follows a simple, robust pipeline:
-
-1.  The `run.py` script initializes the system and listens for user input.
-2.  The `SpeechRecognizer` class captures audio from the microphone and uses `faster-whisper` to transcribe it into text.
-3.  The `LLMHandler` takes the text, packages it with a detailed system prompt, and sends it to a local Ollama server running Llama 3.1.
-4.  The LLM's response, containing both conversational text and a command (e.g., `EXPRESSION:happy`), is received.
-5.  The `TTSHandler` takes the full response, cleans the command part, and sends the conversational text to a `GPT-SoVITS` API server to generate audio, which is then played back.
-6.  Simultaneously, the `LLMHandler` parses the command and sends it to a mock `UnityControl` module, simulating a change in the character's expression.
+1.  The Unity client records audio from the user's microphone.
+2.  The raw audio data is Base64 encoded and sent via a WebSocket connection to the Python backend.
+3.  The `elysia_server.py` receives the data. The `SpeechRecognizer` class uses `faster-whisper` to transcribe the audio to text.
+4.  The `LLMHandler` injects a detailed character card (`.json`) into a prompt and sends it to the **Google Gemini API**, requesting a structured JSON response.
+5.  The JSON response, containing dialogue, expression, and gesture, is received and parsed.
+6.  The `TTSHandler` sends the dialogue text to a local `GPT-SoVITS` server to generate audio.
+7.  The final, complete package (dialogue text, expression/gesture commands, and Base64 audio) is sent back to the Unity client.
+8.  Unity's `ConnectionManager` receives the package, displays the text, triggers the animations, and plays the lip-synced audio.
 
 ## Getting Started
 
@@ -37,43 +41,47 @@ To get a local copy up and running, follow these steps.
 
 ### Prerequisites
 
-*   Python 3.9+ and Anaconda/Miniconda
-*   Git
-*   An NVIDIA GPU with CUDA Toolkit 12.x installed for GPU acceleration.
-*   Running instances of the **Ollama** server (with `llama3.1`) and the **GPT-SoVITS** `api_v2.py` server.
+*   **Python 3.9+** and a Conda environment.
+*   **Unity Editor** (2022.x or newer).
+*   **Git** and **Git LFS** (for handling large model files).
+*   An **NVIDIA GPU** with CUDA Toolkit & cuDNN installed for STT acceleration.
+*   A **Google Gemini API Key**.
+*   A running instance of the **GPT-SoVITS `api_v2.py`** server with a trained voice model.
 
-### Installation
+### Installation & Configuration
 
-1.  Clone the repo:
+1.  Clone the repo (ensure you have Git LFS installed):
     ```sh
-    git clone https://github.com/your_username/Project-Elysia.git
+    git clone https://github.com/Yau0608/Project-Elysia.git
     ```
-2.  Create and activate a Conda environment:
+2.  Set up the Python environment using the provided `requirements.txt`:
     ```sh
     conda create --name elysia python=3.9
     conda activate elysia
-    ```
-3.  Install the required Python packages:
-    *(You will need to create this file! See note below)*
-    ```sh
     pip install -r requirements.txt
     ```
-
-### Configuration
-
-1.  Update the hard-coded file paths in `tts_handler.py` (`DEFAULT_REF_AUDIO`, etc.) to match your local setup.
-2.  Ensure the API URLs in `tts_handler.py` and `llm_handler.py` point to your running servers.
+3.  Create a `config.py` file in the `core/` directory and add your Google Gemini API key:
+    ```python
+    # in core/config.py
+    GEMINI_API_KEY = "YOUR_API_KEY_HERE"
+    ```
+4.  Open the Unity project folder and configure the `ConnectionManager` component with the correct scene references.
 
 ### Running the Application
 
-Execute the main script from the `core` directory:
-```sh
-python run.py
-```
+1.  Start the GPT-SoVITS server.
+2.  Start the Elysia server:
+    ```sh
+    python core/elysia_server.py
+    ```
+3.  Press "Play" in the Unity Editor.
 
 ## Future Development
 
--   [ ] **Phase 1: Gemini Integration:** Upgrade the LLM from the local Llama 3.1 to the more powerful Google Gemini Pro API for enhanced conversational abilities.
--   [ ] **Phase 2: MCP Integration:** Re-architect the communication layer to use the Model Context Protocol (MCP) for deep, stateful integration with a Unity game engine client.
+The current version is a successful Minimum Viable Product (MVP). The next phase of development will focus on expanding the character's expressiveness and interactivity.
+
+-   [ ] **Expand Expression & Gesture Library:** Create a wider range of facial expressions and body gestures in Unity and map them in the controllers.
+-   [ ] **Implement Animation Intensity:** Refactor the animation controllers to use `float` parameters instead of `triggers`, allowing the LLM to control the *intensity* of expressions and gestures for more nuanced performances.
+-   [ ] **(Experimental) MCP Integration:** Investigate migrating the communication layer to the Model Context Protocol (MCP) for deeper, stateful integration with the Unity client.
 
 ---

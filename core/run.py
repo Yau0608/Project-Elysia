@@ -63,10 +63,10 @@ def main():
         print("-" * 40)
 
         # Process and execute the command using the already fetched response
-        dialogue, expression, internal_thought_in_character, gesture = llm_handler.process_command_from_responses(responses_json)
+        dialogue, expression, gesture, internal_thought_in_character = llm_handler.process_command_from_responses(responses_json)
         print(f"\nAction: Set expression to '{expression}'")
-        print(f"Internal Thought: {internal_thought_in_character}")
         print(f"Gesture: {gesture}")
+        print(f"Internal Thought: {internal_thought_in_character}")
 
         # Generate voice response if enabled
         if voice_response_enabled and dialogue and not dialogue.startswith("API call failed"):
