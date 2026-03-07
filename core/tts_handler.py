@@ -10,7 +10,7 @@ import urllib.parse
 
 # Hard-coded reference audio configuration
 DEFAULT_REF_AUDIO = "C:\\Users\\Yau\\Documents\\YauProject\\GPT-SoVITS-v2pro-20250604\\test\\Ely1.wav"
-DEFAULT_PROMPT_TEXT = "那我想，芽衣一定也已经迫不及待了，对不对？好了，我们边走边说吧。"
+DEFAULT_PROMPT_TEXT = "那我想，芽衣一定也已经迫不及待了，對不對？好了，我们邊走邊說吧。"
 DEFAULT_PROMPT_LANG = "zh"
 DEFAULT_API_URL = "http://127.0.0.1:9880"
 DEFAULT_TEXT_LANG = "zh"

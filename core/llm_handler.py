@@ -1,10 +1,7 @@
 import sys
 from pathlib import Path
 import colorsys
-from google import genai
-from google.genai import types
-from config import GEMINI_API_KEY
-from pydantic import BaseModel
+from config import OPENAI_COMPAT_API_KEY, OPENAI_COMPAT_BASE_URL, OPENAI_COMPAT_MODEL
 
 # Add the task directory to the path
 task_dir = Path(__file__).parent.parent / 'task'
@@ -14,30 +11,19 @@ import requests
 import json
 from unity_control import UnityControl
 
-client = genai.Client(api_key=GEMINI_API_KEY)
-
-class CharacterAI(BaseModel):
-    dialogue: str
-    expression: str
-    gesture: str
-    internal_thought_in_character: str
-
 class LLMHandler:
     def __init__(self, debug_mode=False):
         self.base_dir = Path(__file__).parent
         self.debug_mode = debug_mode
-
-        self.config = types.GenerateContentConfig(
-            system_instruction=
-            """
+        self.system_instruction = """
             You are a world-class AI actor. Your job is to fully embody the character defined in the user's prompt.
             - You must always stay in character.
             - Your entire response must be a single, valid JSON object that conforms to the schema provided by the API.
             - Do not add any text, markdown, or explanations before or after the JSON object.
-            """,
-            response_mime_type="application/json",
-            response_schema=CharacterAI,
-            )
+            """
+        self.base_url = self._normalize_base_url(OPENAI_COMPAT_BASE_URL)
+        self.api_key = OPENAI_COMPAT_API_KEY
+        self.model = OPENAI_COMPAT_MODEL
 
         character_card_path = self.base_dir / 'cyrene_character_card.json'
         with open(character_card_path, 'r', encoding='utf-8') as f:
@@ -49,6 +35,14 @@ class LLMHandler:
         """Print debug messages only if debug mode is enabled"""
         if self.debug_mode:
             print(f"DEBUG: {message}")
+
+    def _normalize_base_url(self, base_url):
+        normalized = (base_url or "").strip()
+        if normalized.endswith("/"):
+            normalized = normalized[:-1]
+        if normalized.endswith("/v1"):
+            return normalized
+        return f"{normalized}/v1"
 
     def send_prompt(self, user_prompt):
         try:
@@ -74,12 +68,37 @@ class LLMHandler:
             "{user_prompt}"
             """
 
-            responses_json = client.models.generate_content(
-                model='gemini-2.5-pro',
-                config=self.config,
-                contents=full_prompt,
-            )
-            return responses_json.text
+            url = f"{self.base_url}/chat/completions"
+            headers = {"Content-Type": "application/json"}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+
+            payload = {
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": self.system_instruction},
+                    {"role": "user", "content": full_prompt}
+                ],
+                "response_format": {"type": "json_object"}
+            }
+
+            response = requests.post(url, headers=headers, json=payload, timeout=90)
+            if response.status_code >= 400:
+                payload.pop("response_format", None)
+                response = requests.post(url, headers=headers, json=payload, timeout=90)
+
+            if response.status_code >= 400:
+                try:
+                    print(f"Error in send_prompt: {response.status_code} - {response.json()}")
+                except Exception:
+                    print(f"Error in send_prompt: {response.status_code} - {response.text}")
+                return None
+
+            data = response.json()
+            choice = (data.get("choices") or [{}])[0]
+            message = choice.get("message") or {}
+            content = message.get("content") or choice.get("text")
+            return content
         
 
         except Exception as e:
@@ -275,4 +294,12 @@ class LLMHandler:
         except Exception as e:
             print(f"Error in process_command_from_responses: {e}")
             return ("I'm sorry, I got a strange response and can't think clearly.", "pouting", f"Error: {e}")
+
+def self_test():
+    handler = LLMHandler(debug_mode=True)
+    result = handler.send_prompt("Say hello in one short sentence.")
+    print(result)
+
+if __name__ == "__main__":
+    self_test()
 
