@@ -1,11 +1,47 @@
-# In Project-Elysia/.gitignore
-
-# Ignore Python's cache files
+# =========================
+# THIRD-PARTY AI MODELS (DO NOT COMMIT)
+# =========================
+GPT-sovits/
+[Gg][Pp][Tt]-[Ss]o[Vv][Ii][Tt][Ss]/
+# =========================
+# PYTHON BACKEND IGNORES
+# =========================
 __pycache__/
+*.py[cod]
+*$py.class
+.env
+/[Bb]ackend/temp/
 
-# Ignore our secret configuration file
-core/config.py
+# Your specific secrets and prompts (Updated paths!)
+/[Bb]ackend/core/config.py
+/[Bb]ackend/core/cyrene_character_card.json
+/[Bb]ackend/Cyrene.txt
 
-# Ignore Cyrene system prompt
-Cyrene.txt
-core/cyrene_character_card.json
+# =========================
+# UNITY FRONTEND IGNORES
+# =========================
+/[Ff]rontend/[Ll]ibrary/
+/[Ff]rontend/[Tt]emp/
+/[Ff]rontend/[Oo]bj/
+/[Ff]rontend/[Bb]uild/
+/[Ff]rontend/[Bb]uilds/
+/[Ff]rontend/[Ll]ogs/
+/[Ff]rontend/[Mm]emoryCaptures/
+/[Ff]rontend/[Uu]ser[Ss]ettings/
+
+# Ignore Unity's auto-generated Visual Studio files
+/[Ff]rontend/*.csproj
+/[Ff]rontend/*.sln
+/[Ff]rontend/.vs/
+/[Ff]rontend/.vscode/
+
+# Asset meta data should NEVER be ignored!
+
+
+# =========================
+# UNITY PLUGINS IGNORES (Avoid >100MB files for platforms we don't use)
+# =========================
+/[Ff]rontend/[Aa]ssets/MMD4Mecanim/Plugins/**/iOS/
+/[Ff]rontend/[Aa]ssets/MMD4Mecanim/Plugins/**/Android/
+/[Ff]rontend/[Aa]ssets/MMD4Mecanim/Plugins/**/*.bundle/
+/[Ff]rontend/[Aa]ssets/MMD4Mecanim/Plugins/**/*.dylib
