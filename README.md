@@ -13,7 +13,7 @@ A real-time, voice-controlled AI character engine built in Python and Unity. Thi
 
 Project Elysia is the first step towards creating a truly interactive and emotionally intelligent digital character. Inspired by the dream of creating immersive virtual worlds, this project focuses on building the core "brain" and "voice" of an AI persona, rendered and controlled in real-time within the Unity game engine.
 
-The system is designed to be a modular platform. While this version uses the powerful Gemini Pro API for the best possible conversational quality, the architecture can easily be adapted to use local models like Llama for offline use. The current character persona is a custom-designed character named "昔涟" (Cyrene).
+The system is designed to be a modular platform. While this version uses the powerful Gemini Pro API for the best possible conversational quality, the architecture can easily be adapted to use local models like Llama for offline use. The current character persona is a character named "昔涟" (Cyrene) from Honkai: Star Rail.
 
 This project was a deep dive into the practical challenges of building an end-to-end AI application, from setting up a professional development environment with GPU acceleration to engineering a consistent and believable character persona through advanced prompt engineering and structured data formats.
 
