@@ -14,7 +14,6 @@ __pycache__/
 
 # Your specific secrets and prompts (Updated paths!)
 /[Bb]ackend/core/config.py
-/[Bb]ackend/core/cyrene_character_card.json
 /[Bb]ackend/Cyrene.txt
 
 # =========================
