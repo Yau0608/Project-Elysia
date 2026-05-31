@@ -11,6 +11,8 @@ __pycache__/
 *$py.class
 .env
 /[Bb]ackend/temp/
+.venv/
+venv/
 
 # Your specific secrets and prompts (Updated paths!)
 /[Bb]ackend/core/config.py

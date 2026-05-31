@@ -1,4 +1,4 @@
-// In ConnectionManager.cs
+﻿// In ConnectionManager.cs
 
 using JetBrains.Annotations;
 using NativeWebSocket;
@@ -25,8 +25,9 @@ public class ElysiaResponseForLogging
 [System.Serializable]
 public class UnityMessage
 { 
-    public string @event; // The event type, e.g., "audio_data"
-    public string data; // The actual data, e.g., base64 audio string
+    public string @event;
+    public string data;
+    public bool stream_tts;
 }
 public class ElysiaResponse
 {
@@ -35,6 +36,22 @@ public class ElysiaResponse
     public string gesture;
     public string internal_thought_in_character;
     public string audio_base64;
+}
+
+[System.Serializable]
+public class ElysiaStreamEvent
+{
+    public string @event; // "tts_stream_start", "tts_stream_chunk", or "tts_stream_end"
+
+    // Used in 'start' and 'end'
+    public string dialogue;
+    public string expression;
+    public string gesture;
+    public string internal_thought_in_character;
+
+    // Used in 'chunk'
+    public int seq;
+    public string audio_chunk_base64;
 }
 
 public class ConnectionManager : MonoBehaviour
@@ -51,6 +68,7 @@ public class ConnectionManager : MonoBehaviour
     public TextMeshProUGUI internalThoughtTextUI; // This is the text UI for internal thoughts
     public AudioSource characterAudioSource; // A link to the AudioSource component
     public UnityEngine.UI.Image micButtonImage;
+    public StreamingAudioPlayer streamPlayer;
 
     private readonly Queue<Action> mainThreadActions = new Queue<Action>();
 
@@ -83,6 +101,15 @@ public class ConnectionManager : MonoBehaviour
             return;
         }
         Debug.Log("All components successfully linked in the Inspector!");
+        if (streamPlayer != null)
+        {
+            streamPlayer.OnStreamComplete += () => {
+                mainThreadActions.Enqueue(() => {
+                    expressionController.HandleExpression("neutral");
+                    // gestureController.PlayGesture("Idle"); 
+                });
+            };
+        }
         ConnectToServer();
         if (Microphone.devices.Length > 0)
         {
@@ -146,6 +173,7 @@ public class ConnectionManager : MonoBehaviour
         UnityMessage messageData = new UnityMessage();
         messageData.@event = "audio_data";
         messageData.data = audioBase64;
+        messageData.stream_tts = true; // Set to true to enable streaming TTS on the server side
         string jsonMessage = JsonUtility.ToJson(messageData);
 
         Debug.Log("Sending JSON: " + jsonMessage);
@@ -167,21 +195,45 @@ public class ConnectionManager : MonoBehaviour
         websocket.OnClose += (e) => { Debug.Log("[X] Connection closed!"); };
         websocket.OnMessage += (bytes) =>
         {
-            // First, decode the raw bytes into a JSON string.
             var jsonString = System.Text.Encoding.UTF8.GetString(bytes);
-            Debug.Log("Received JSON: " + jsonString);
-            // New elysia log that don't have the huge audio_base64 field, for logging purposes.
-            ElysiaResponseForLogging logResponse = JsonUtility.FromJson<ElysiaResponseForLogging>(jsonString);
-            string sanitizedJson = JsonUtility.ToJson(logResponse, true); // 'true' makes it pretty-print
-            Debug.Log("Received Sanitized JSON: \n" + sanitizedJson);
 
-            // Original Elysia response with audio data, for playing the character's turn.
-            ElysiaResponse response = JsonUtility.FromJson<ElysiaResponse>(jsonString);
+            // Try to parse the new streaming event
+            ElysiaStreamEvent streamEvent = JsonUtility.FromJson<ElysiaStreamEvent>(jsonString);
 
-            mainThreadActions.Enqueue(() => {
-                // We just start the master coroutine and pass it the data it needs.
-                StartCoroutine(PlayCharacterTurn(response));
-            });
+            if (streamEvent.@event == "tts_stream_start")
+            {
+                Debug.Log("[STREAM] Started! Dialogue: " + streamEvent.dialogue);
+                mainThreadActions.Enqueue(() => {
+
+                    if (streamPlayer != null) streamPlayer.StartReceiving();
+
+                    dialoguePanel.SetActive(true);
+                    internalThoughtPanel.SetActive(false);
+                    expressionController.HandleExpression(streamEvent.expression);
+                    gestureController.PlayGesture(streamEvent.gesture);
+                    dialogueTextUI.text = streamEvent.dialogue;
+                    internalThoughtTextUI.text = streamEvent.internal_thought_in_character;
+                });
+            }
+            else if (streamEvent.@event == "tts_stream_chunk")
+            {
+                if (streamPlayer != null) streamPlayer.AddChunkBase64(streamEvent.audio_chunk_base64);
+                // Step 2 will go here!
+            }
+            else if (streamEvent.@event == "tts_stream_end")
+            {
+                Debug.Log("[STREAM] Ended!");
+                if (streamPlayer != null) streamPlayer.StopReceiving(); 
+            }
+            else
+            {
+                // FALLBACK: If it has no event type, it's the old legacy JSON
+                Debug.Log("Received legacy JSON fallback...");
+                ElysiaResponse response = JsonUtility.FromJson<ElysiaResponse>(jsonString);
+                mainThreadActions.Enqueue(() => {
+                    StartCoroutine(PlayCharacterTurn(response));
+                });
+            }
         };
 
         await websocket.Connect();
