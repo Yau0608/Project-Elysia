@@ -1821,6 +1821,7 @@ MonoBehaviour:
   internalThoughtTextUI: {fileID: 903317291}
   characterAudioSource: {fileID: 359566721}
   micButtonImage: {fileID: 237586181}
+  streamPlayer: {fileID: 359566735}
 --- !u!4 &250654759
 Transform:
   m_ObjectHideFlags: 0
@@ -5388,6 +5389,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   defaultTestGesture: thinking
+--- !u!114 &359566735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 359566708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2faeb39c807955643918df851d5a883f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &360056182 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2809026369808332608, guid: f40616e998f79944d800046019e1847b, type: 3}
@@ -13280,6 +13293,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f40616e998f79944d800046019e1847b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 359566733}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f40616e998f79944d800046019e1847b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 359566735}
     - targetCorrespondingSourceObject: {fileID: 4485408824413163117, guid: f40616e998f79944d800046019e1847b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 974563824}
