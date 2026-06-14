@@ -23,13 +23,14 @@ async def send_streaming_tts(
     gesture,
     internal_thought_in_character
 ):
+    sample_rate = tts_handler.get_expected_output_sample_rate()
     await websocket.send(json.dumps({
         "event": "tts_stream_start",
         "dialogue": dialogue,
         "expression": expression,
         "gesture": gesture,
         "internal_thought_in_character": internal_thought_in_character,
-        "sample_rate": 32000,
+        "sample_rate": sample_rate,
         "channels": 1,
         "sample_width": 2,
         "audio_format": "pcm_s16le",

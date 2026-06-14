@@ -29,6 +29,7 @@ public class UnityMessage
     public string data;
     public bool stream_tts;
 }
+[System.Serializable]
 public class ElysiaResponse
 {
     public string dialogue;
@@ -48,6 +49,10 @@ public class ElysiaStreamEvent
     public string expression;
     public string gesture;
     public string internal_thought_in_character;
+    public int sample_rate;
+    public int channels;
+    public int sample_width;
+    public string audio_format;
 
     // Used in 'chunk'
     public int seq;
@@ -173,7 +178,7 @@ public class ConnectionManager : MonoBehaviour
         UnityMessage messageData = new UnityMessage();
         messageData.@event = "audio_data";
         messageData.data = audioBase64;
-        messageData.stream_tts = true; // Set to true to enable streaming TTS on the server side
+        messageData.stream_tts = true; // Use the streaming PCM path with runtime sample-rate handling.
         string jsonMessage = JsonUtility.ToJson(messageData);
 
         Debug.Log("Sending JSON: " + jsonMessage);
@@ -202,10 +207,10 @@ public class ConnectionManager : MonoBehaviour
 
             if (streamEvent.@event == "tts_stream_start")
             {
-                Debug.Log("[STREAM] Started! Dialogue: " + streamEvent.dialogue);
+                Debug.Log("[STREAM] Started! Dialogue: " + streamEvent.dialogue + " sample_rate=" + streamEvent.sample_rate);
                 mainThreadActions.Enqueue(() => {
 
-                    if (streamPlayer != null) streamPlayer.StartReceiving();
+                    if (streamPlayer != null) streamPlayer.StartReceiving(streamEvent.sample_rate);
 
                     dialoguePanel.SetActive(true);
                     internalThoughtPanel.SetActive(false);
@@ -230,6 +235,7 @@ public class ConnectionManager : MonoBehaviour
                 // FALLBACK: If it has no event type, it's the old legacy JSON
                 Debug.Log("Received legacy JSON fallback...");
                 ElysiaResponse response = JsonUtility.FromJson<ElysiaResponse>(jsonString);
+                Debug.Log("Legacy response audio length: " + (response?.audio_base64?.Length ?? 0));
                 mainThreadActions.Enqueue(() => {
                     StartCoroutine(PlayCharacterTurn(response));
                 });
@@ -242,6 +248,11 @@ public class ConnectionManager : MonoBehaviour
     IEnumerator PlayCharacterTurn(ElysiaResponse response)
     {
         // === Step A: Preparation ===
+        if (response == null)
+        {
+            Debug.LogError("Cannot play turn, legacy response could not be parsed.");
+            yield break;
+        }
 
         // First, let's get the audio ready so we know how long it is.
         if (string.IsNullOrEmpty(response.audio_base64))
@@ -251,6 +262,11 @@ public class ConnectionManager : MonoBehaviour
         }
         byte[] audioBytes = System.Convert.FromBase64String(response.audio_base64);
         AudioClip clip = WavUtility.ToAudioClip(audioBytes);
+        if (clip == null)
+        {
+            Debug.LogError("Cannot play turn, WAV decode returned null.");
+            yield break;
+        }
         float audioDuration = clip.length; // Get the duration of the audio in seconds.
     
         // --- The Performance Begins ---

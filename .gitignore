@@ -11,12 +11,17 @@ __pycache__/
 *$py.class
 .env
 /[Bb]ackend/temp/
+/[Bb]ackend/core/temp/
+/[Bb]ackend/core/temp_recording.wav
+/[Bb]ackend/core/latest_transcription.txt
+/[Bb]ackend/task/audio_audit/
 .venv/
 venv/
 
 # Your specific secrets and prompts (Updated paths!)
-/[Bb]ackend/core/config.py
 /[Bb]ackend/Cyrene.txt
+/.env
+!/.env.example
 
 # =========================
 # UNITY FRONTEND IGNORES
@@ -35,6 +40,7 @@ venv/
 /[Ff]rontend/*.sln
 /[Ff]rontend/.vs/
 /[Ff]rontend/.vscode/
+/.vscode/
 
 # Asset meta data should NEVER be ignored!
 

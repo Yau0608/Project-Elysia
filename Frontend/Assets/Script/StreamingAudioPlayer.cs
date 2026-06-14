@@ -5,9 +5,12 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class StreamingAudioPlayer : MonoBehaviour
 {
-    private Queue<float> audioBuffer = new Queue<float>();
+    private readonly Queue<float> audioBuffer = new Queue<float>();
+    private readonly object audioBufferLock = new object();
     private bool isReceiving = false;
     private AudioSource audioSource;
+    private int sourceSampleRate = 32000;
+    private int outputSampleRate = 48000;
 
     // This allows other scripts (like ConnectionManager) to know when the audio actually finishes
     public Action OnStreamComplete;
@@ -15,15 +18,39 @@ public class StreamingAudioPlayer : MonoBehaviour
     void Awake()
     {
         audioSource = GetComponent<AudioSource>();
-        // Create a dummy clip to keep the AudioSource active so OnAudioFilterRead runs
-        audioSource.clip = AudioClip.Create("StreamDummy", 32000, 1, 32000, false);
+        outputSampleRate = AudioSettings.outputSampleRate;
         audioSource.loop = true;
+        ConfigureStreamingClip(outputSampleRate);
     }
 
-    public void StartReceiving()
+    void ConfigureStreamingClip(int sampleRate)
     {
-        audioBuffer.Clear();
+        if (audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+
+        audioSource.clip = AudioClip.Create(
+            "StreamDummy",
+            Math.Max(sampleRate, 1024),
+            1,
+            sampleRate,
+            true,
+            OnAudioRead
+        );
+    }
+
+    public void StartReceiving(int sampleRate)
+    {
+        lock (audioBufferLock)
+        {
+            audioBuffer.Clear();
+        }
+
+        sourceSampleRate = sampleRate > 0 ? sampleRate : outputSampleRate;
+        ConfigureStreamingClip(sourceSampleRate);
         isReceiving = true;
+        Debug.Log($"[STREAM] Source sample rate: {sourceSampleRate}, output sample rate: {outputSampleRate}");
         audioSource.Play();
     }
 
@@ -33,10 +60,13 @@ public class StreamingAudioPlayer : MonoBehaviour
         byte[] pcmBytes = Convert.FromBase64String(base64);
 
         // 2. Convert 16-bit PCM bytes to floats (-1.0 to 1.0) for Unity
-        for (int i = 0; i < pcmBytes.Length; i += 2)
+        lock (audioBufferLock)
         {
-            short sample16 = BitConverter.ToInt16(pcmBytes, i);
-            audioBuffer.Enqueue(sample16 / 32768f);
+            for (int i = 0; i < pcmBytes.Length; i += 2)
+            {
+                short sample16 = BitConverter.ToInt16(pcmBytes, i);
+                audioBuffer.Enqueue(sample16 / 32768f);
+            }
         }
     }
 
@@ -45,22 +75,20 @@ public class StreamingAudioPlayer : MonoBehaviour
         isReceiving = false;
     }
 
-    // This is a special Unity function that injects our raw numbers directly into the speaker
-    void OnAudioFilterRead(float[] data, int channels)
+    void OnAudioRead(float[] data)
     {
-        for (int i = 0; i < data.Length; i += channels)
+        lock (audioBufferLock)
         {
-            float sample = 0f;
-            // If we have downloaded chunks, play them
-            if (audioBuffer.Count > 0)
+            for (int i = 0; i < data.Length; i++)
             {
-                sample = audioBuffer.Dequeue();
-            }
-
-            // Output the sound to all speakers (left/right)
-            for (int c = 0; c < channels; c++)
-            {
-                data[i + c] = sample;
+                if (audioBuffer.Count > 0)
+                {
+                    data[i] = audioBuffer.Dequeue();
+                }
+                else
+                {
+                    data[i] = 0f;
+                }
             }
         }
     }
@@ -68,7 +96,13 @@ public class StreamingAudioPlayer : MonoBehaviour
     void Update()
     {
         // If Python finished sending, AND we finished playing the last chunk in the buffer...
-        if (!isReceiving && audioBuffer.Count == 0 && audioSource.isPlaying)
+        int bufferedSampleCount;
+        lock (audioBufferLock)
+        {
+            bufferedSampleCount = audioBuffer.Count;
+        }
+
+        if (!isReceiving && bufferedSampleCount <= 0 && audioSource.isPlaying)
         {
             audioSource.Stop();
             OnStreamComplete?.Invoke(); // Fire the event to reset her face!
