@@ -11,6 +11,8 @@ public class StreamingAudioPlayer : MonoBehaviour
     private AudioSource audioSource;
     private int sourceSampleRate = 32000;
     private int outputSampleRate = 48000;
+    private float stopAfterBufferDrainAt = -1f;
+    private float drainDelaySeconds = 0.15f;
 
     // This allows other scripts (like ConnectionManager) to know when the audio actually finishes
     public Action OnStreamComplete;
@@ -48,6 +50,9 @@ public class StreamingAudioPlayer : MonoBehaviour
         }
 
         sourceSampleRate = sampleRate > 0 ? sampleRate : outputSampleRate;
+        AudioSettings.GetDSPBufferSize(out int bufferLength, out int numBuffers);
+        drainDelaySeconds = Mathf.Max(0.1f, (bufferLength * numBuffers) / (float)sourceSampleRate + 0.05f);
+        stopAfterBufferDrainAt = -1f;
         ConfigureStreamingClip(sourceSampleRate);
         isReceiving = true;
         Debug.Log($"[STREAM] Source sample rate: {sourceSampleRate}, output sample rate: {outputSampleRate}");
@@ -104,8 +109,20 @@ public class StreamingAudioPlayer : MonoBehaviour
 
         if (!isReceiving && bufferedSampleCount <= 0 && audioSource.isPlaying)
         {
-            audioSource.Stop();
-            OnStreamComplete?.Invoke(); // Fire the event to reset her face!
+            if (stopAfterBufferDrainAt < 0f)
+            {
+                stopAfterBufferDrainAt = Time.unscaledTime + drainDelaySeconds;
+            }
+            else if (Time.unscaledTime >= stopAfterBufferDrainAt)
+            {
+                audioSource.Stop();
+                stopAfterBufferDrainAt = -1f;
+                OnStreamComplete?.Invoke(); // Fire the event to reset her face!
+            }
+        }
+        else
+        {
+            stopAfterBufferDrainAt = -1f;
         }
     }
 }

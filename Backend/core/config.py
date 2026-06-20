@@ -35,7 +35,7 @@ OPENAI_COMPAT_MODEL = os.getenv("OPENAI_COMPAT_MODEL", "gemini-3-flash-preview")
 # OPENAI_COMPAT_MODEL = os.getenv("OPENAI_COMPAT_MODEL", "gemini-3.1-pro-preview")
 
 TTS_API_URL = os.getenv("TTS_API_URL", "http://127.0.0.1:9880")
-TTS_ACTIVE_VOICE = os.getenv("TTS_ACTIVE_VOICE", "cyrene_intro")
+TTS_ACTIVE_VOICE = os.getenv("TTS_ACTIVE_VOICE", "elysia")
 TTS_SAMPLE_STEPS = int(os.getenv("TTS_SAMPLE_STEPS", "16"))
 TTS_PARALLEL_INFER = os.getenv("TTS_PARALLEL_INFER", "true").lower() == "true"
 TTS_BATCH_SIZE = int(os.getenv("TTS_BATCH_SIZE", "1"))

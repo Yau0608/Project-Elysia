@@ -119,8 +119,11 @@ async def handler(websocket):
                 total_latency = time.perf_counter() - request_started_at
                 print(f"Sent complete response to Unity. End-to-end latency: {total_latency:.2f}s")
     
-    except websockets.exceptions.ConnectionClosed:
-        print("Clinet disconnected")
+    except websockets.exceptions.ConnectionClosed as exc:
+        print(
+            "Client disconnected "
+            f"(code={getattr(exc, 'code', 'unknown')}, reason={getattr(exc, 'reason', '')!r})"
+        )
 
 async def main():
     async with websockets.serve(handler, "localhost", 8765):

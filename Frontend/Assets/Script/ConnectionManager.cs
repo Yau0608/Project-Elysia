@@ -197,7 +197,7 @@ public class ConnectionManager : MonoBehaviour
 
         websocket.OnOpen += () => { Debug.Log("[1] Connection open!"); };
         websocket.OnError += (e) => { Debug.Log("[ERROR] " + e); };
-        websocket.OnClose += (e) => { Debug.Log("[X] Connection closed!"); };
+        websocket.OnClose += (e) => { Debug.Log("[X] Connection closed! Code: " + e + " State: " + websocket.State); };
         websocket.OnMessage += (bytes) =>
         {
             var jsonString = System.Text.Encoding.UTF8.GetString(bytes);
@@ -332,6 +332,16 @@ public class ConnectionManager : MonoBehaviour
 
     private async void OnApplicationQuit()
     {
+        Debug.Log("[X] OnApplicationQuit closing websocket. Current state: " + (websocket != null ? websocket.State.ToString() : "null"));
         if (websocket != null) { await websocket.Close(); }
+    }
+
+    private async void OnDisable()
+    {
+        if (websocket != null)
+        {
+            Debug.Log("[X] OnDisable closing websocket. Current state: " + websocket.State);
+            await websocket.Close();
+        }
     }
 }
