@@ -35,7 +35,7 @@ OPENAI_COMPAT_MODEL = os.getenv("OPENAI_COMPAT_MODEL", "gemini-3-flash-preview")
 # OPENAI_COMPAT_MODEL = os.getenv("OPENAI_COMPAT_MODEL", "gemini-3.1-pro-preview")
 
 TTS_API_URL = os.getenv("TTS_API_URL", "http://127.0.0.1:9880")
-TTS_ACTIVE_VOICE = os.getenv("TTS_ACTIVE_VOICE", "elysia")
+TTS_ACTIVE_VOICE = os.getenv("TTS_ACTIVE_VOICE", "cyrene_intro")
 TTS_SAMPLE_STEPS = int(os.getenv("TTS_SAMPLE_STEPS", "16"))
 TTS_PARALLEL_INFER = os.getenv("TTS_PARALLEL_INFER", "true").lower() == "true"
 TTS_BATCH_SIZE = int(os.getenv("TTS_BATCH_SIZE", "1"))
@@ -149,11 +149,11 @@ def _sovits_weight_globs(*keywords):
 
 TTS_VOICE_PRESETS = {
     "cyrene_intro": {
-        "ref_audio_path": "GPT-sovits/reference_audio/Cyrene/archive_cyrene_11.wav",
+        "ref_audio_path": "GPT-sovits/reference_audio/Cyrene/archive_cyrene_2.wav",
         "ref_audio_candidates": [
-            "GPT-sovits/reference_audio/Cyrene/archive_cyrene_11.wav",
             "GPT-sovits/reference_audio/Cyrene/archive_cyrene_2.wav",
-            "GPT-sovits/reference_audio/Cyrene/chapter4_33_cyrenely_101.wav",
+            "GPT-sovits/reference_audio/Cyrene/peaceful_cyrene_1.wav",
+            "GPT-sovits/reference_audio/Cyrene/archive_cyrene_11.wav",
         ],
         "ref_audio_glob": ["GPT-sovits/reference_audio/Cyrene/*.wav"],
         "prompt_lang": DEFAULT_TTS_PROMPT_LANG,

@@ -1,4 +1,4 @@
-﻿// In ConnectionManager.cs
+// In ConnectionManager.cs
 
 using JetBrains.Annotations;
 using NativeWebSocket;
@@ -139,7 +139,7 @@ public class ConnectionManager : MonoBehaviour
             micButtonImage.color = Color.red;
         }
 
-        recordingClip = Microphone.Start(microphoneDevice, false, 15, 44100);
+        recordingClip = Microphone.Start(microphoneDevice, false, 8, 44100);
     
     }
 

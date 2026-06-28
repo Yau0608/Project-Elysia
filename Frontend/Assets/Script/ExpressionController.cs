@@ -42,6 +42,11 @@ public class ExpressionController : MonoBehaviour
                 SetExpressionSad();
                 break;
 
+            case "worried":
+            case "troubled":
+                SetExpressionWorried();
+                break;
+
             // --- The "Surprised" Bucket ---
             case "surprised":
             case "shocked":

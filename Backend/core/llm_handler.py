@@ -277,11 +277,26 @@ class LLMHandler:
         
 # In llm_handler.py, replace the old method with this new, clean version.
 
+    def _build_fallback_response(self, issue_type, detail):
+        if issue_type == "api":
+            return (
+                "唔……我這邊好像突然卡住了一下，腦袋也跟著空白了一瞬。可以再和我說一次嗎？",
+                "worried",
+                "thinking",
+                f"API error: {detail}",
+            )
+
+        return (
+            "嗯……我剛剛好像一不小心把話說亂了。讓我整理一下思緒，你願意再說一次嗎？",
+            "pouting",
+            "idle",
+            f"LLM parse error: {detail}",
+        )
+
     def process_command_from_responses(self, responses_json_string):
         
         if responses_json_string is None:
-
-            return ("API call failed. Please check the error log.", "pouting","sleeping","Error: No response from API.")
+            return self._build_fallback_response("api", "No response from API.")
         try:
             response_data = json.loads(responses_json_string)
             dialogue = response_data.get("dialogue", "Error: Missing dialogue.")
@@ -293,7 +308,7 @@ class LLMHandler:
 
         except Exception as e:
             print(f"Error in process_command_from_responses: {e}")
-            return ("I'm sorry, I got a strange response and can't think clearly.", "pouting", f"Error: {e}")
+            return self._build_fallback_response("parse", str(e))
 
 def self_test():
     handler = LLMHandler(debug_mode=True)
