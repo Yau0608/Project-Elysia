@@ -49,7 +49,7 @@ def main():
         
         # Process with LLM
         print("\nProcessing with LLM...")
-        responses_json = llm_handler.send_prompt(transcribed_text)
+        responses_json = llm_handler.send_prompt_and_wait_for_response(transcribed_text)
         
         """
         Try to get the response from 

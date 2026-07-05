@@ -44,7 +44,7 @@ class LLMHandler:
             return normalized
         return f"{normalized}/v1"
 
-    def send_prompt(self, user_prompt):
+    def send_prompt_and_wait_for_response(self, user_prompt): #Technically this is send prompt and return the response
         try:
             
             character_card_string = json.dumps(self.character_card, ensure_ascii=False, indent=2)
@@ -312,7 +312,7 @@ class LLMHandler:
 
 def self_test():
     handler = LLMHandler(debug_mode=True)
-    result = handler.send_prompt("Say hello in one short sentence.")
+    result = handler.send_prompt_and_wait_for_response("Say hello in one short sentence.")
     print(result)
 
 if __name__ == "__main__":

@@ -1,0 +1,1 @@
+1. A2F wrong container downloaded. Next step: find the correct 3D version. Need to map ARKit 52 to MMD morphs.

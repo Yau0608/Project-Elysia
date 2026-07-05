@@ -80,7 +80,7 @@ async def handler(websocket):
                 print(f"Transcription: {transcribed_text}")
                 # 2. LLM processing
                 print("Sending text to LLM...")
-                responses_json_string = llm_handler.send_prompt(transcribed_text)
+                responses_json_string = llm_handler.send_prompt_and_wait_for_response(transcribed_text)
                 dialogue, expression, gesture, internal_thought_in_character = llm_handler.process_command_from_responses(responses_json_string)
 
                 if stream_tts:
