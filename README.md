@@ -79,6 +79,17 @@ To get a local copy up and running, follow these steps.
 4.  To switch TTS voice/model settings, update `Backend/core/config.py`. Changes to the active preset are picked up on the next TTS request without restarting the Elysia backend.
 5.  For best GPT-SoVITS results, use reference audio clips in the 3-10 second range. The helper script `Backend/task/audit_reference_audio.py` can be used to rank and shortlist good candidates.
 
+## Deployment Blueprint
+
+If you want to move this project toward a public, production-minded self-hosted setup, see [docs/deployment-blueprint.md](file:///c:/Users/Yau/Documents/YauProject/Project-Elysia/docs/deployment-blueprint.md).
+
+The recommended low-cost deployment shape is:
+
+- Raspberry Pi as the public edge and website host
+- GPU PC as the private inference worker for `faster-whisper` and `GPT-SoVITS`
+- Cloudflare Tunnel for free external access
+- Nginx or Caddy on the Pi as the reverse proxy layer
+
 ## Future Development
 
 The current version is a successful Minimum Viable Product (MVP). The next phase of development will focus on expanding the character's expressiveness and interactivity.
