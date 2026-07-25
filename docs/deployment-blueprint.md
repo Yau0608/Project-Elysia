@@ -6,6 +6,11 @@ This document turns the current local MVP into a production-minded self-hosted d
 - `GPU PC` as the private inference worker
 - `Cloudflare Tunnel` for free public access
 
+It now has two goals at the same time:
+
+- build a practical low-cost public deployment
+- build a portfolio-quality system that demonstrates industry-standard thinking
+
 It is designed for the current architecture:
 
 - Unity client over WebSocket
@@ -203,6 +208,27 @@ My preference for your stage is:
 
 Either is fine.
 
+### Portfolio-oriented recommendation
+
+If your goal includes learning and CV value, I recommend a slightly more industry-recognizable path:
+
+- `Nginx` on the Pi as the reverse proxy
+- `Docker Compose` where it adds clear reproducibility
+- `systemd` for host-managed services such as `cloudflared`
+- native GPU worker on the PC first if containerizing GPU workloads slows you down
+
+Why:
+
+- `Nginx` is highly recognizable in production environments
+- `Docker Compose` shows reproducible multi-service deployment
+- `systemd` is still useful for always-on host services and autostart
+- native GPU execution keeps momentum high while you learn the system design
+
+Recommended portfolio stack:
+
+- Pi: `cloudflared + systemd`, `nginx`, `docker compose`, `elysia-gateway`, static frontend
+- PC: `elysia-worker`, `gpt-sovits`, `faster-whisper`, native first
+
 ## 9. Security Minimums
 
 Before public access, add these controls.
@@ -237,7 +263,28 @@ To feel production-ish, the deployment needs these behaviors:
 - user-facing error message when the queue is full or worker is unavailable
 - structured logs for every request
 
-## 11. Concrete Config Blueprint
+## 11. Portfolio and Industry-Standard Goals
+
+If this deployment is also meant to strengthen your CV, the system should show more than basic functionality.
+
+Priority signals for employers:
+
+- clear separation between public edge, gateway, and worker
+- reproducible deployment steps
+- environment-based configuration and secret handling
+- health checks and restart behavior
+- structured logging and latency visibility
+- basic auth, rate limiting, and trust boundaries
+- documentation that explains tradeoffs and design choices
+
+What interviewers can learn from this project:
+
+- how you think about public versus private network boundaries
+- how you break a real-time AI system into services
+- how you handle streaming, failure recovery, and observability
+- how you make a hobby project look like a deployable product
+
+## 12. Concrete Config Blueprint
 
 ### Pi services
 
@@ -266,7 +313,7 @@ PC:
 
 If the worker and GPT-SoVITS are both on the PC, keep GPT-SoVITS internal and let only the worker talk to it.
 
-## 12. Current Code Changes Needed Before Public Launch
+## 13. Current Code Changes Needed Before Public Launch
 
 These are the most important repo-level changes implied by the deployment plan.
 
@@ -275,6 +322,12 @@ These are the most important repo-level changes implied by the deployment plan.
 - make the frontend WebSocket URL configurable instead of hardcoded `ws://localhost:8765`
 - support `wss://` for public deployment
 - separate gateway logic from inference logic in the backend
+
+This is the real blocker today:
+
+- the client currently points to `localhost`, which only works on the machine running the client
+- public users need the client to connect to your public domain, not their own device
+- Docker does not solve this by itself because the endpoint the client uses is still wrong unless you make it configurable
 
 ### Priority 2
 
@@ -289,7 +342,13 @@ These are the most important repo-level changes implied by the deployment plan.
 - add rate limiting at the proxy
 - add deployment configs such as `docker-compose.yml` or `systemd` units
 
-## 13. Phased Rollout Plan
+### Priority 4
+
+- add architecture diagrams and deployment diagrams
+- document service contracts and environment variables
+- record deployment decisions and tradeoffs in docs
+
+## 14. Phased Rollout Plan
 
 ### Phase 0: Internal cleanup
 
@@ -303,7 +362,31 @@ Exit criteria:
 - frontend can connect using configurable `ws` URL
 - backend endpoints are documented
 
-### Phase 1: LAN deployment
+Learning focus:
+
+- client/server addressing
+- WebSocket environments
+- public versus local endpoint design
+
+### Phase 1: Service split on one machine
+
+Goal:
+
+- split the current backend into gateway and worker roles before adding infrastructure
+
+Exit criteria:
+
+- gateway and worker responsibilities are explicit
+- worker can be called through a defined internal API
+- current streaming behavior still works
+
+Learning focus:
+
+- service boundaries
+- API contracts
+- streaming relay design
+
+### Phase 2: LAN deployment
 
 Goal:
 
@@ -315,7 +398,13 @@ Exit criteria:
 - one full voice interaction succeeds through the Pi
 - PCM streaming still works
 
-### Phase 2: Public beta
+Learning focus:
+
+- reverse proxying
+- internal networking
+- process supervision
+
+### Phase 3: Public beta
 
 Goal:
 
@@ -328,7 +417,13 @@ Exit criteria:
 - auth is enabled
 - reverse proxy limits are active
 
-### Phase 3: Hardening
+Learning focus:
+
+- HTTPS and `wss`
+- edge routing
+- public deployment safety
+
+### Phase 4: Hardening
 
 Goal:
 
@@ -341,7 +436,13 @@ Exit criteria:
 - logs are usable
 - queue limits and timeouts exist
 
-## 14. Deployment Decision Table
+Learning focus:
+
+- reliability engineering
+- observability
+- production operations basics
+
+## 15. Deployment Decision Table
 
 ### Option A: Cloudflare Tunnel only, no Nginx
 
@@ -393,11 +494,11 @@ Cons:
 - more router and security work
 - higher exposure risk
 
-## 15. Recommended Choice
+## 16. Recommended Choice
 
 For your current goal, use:
 
-- `Cloudflare Tunnel + Nginx/Caddy on Raspberry Pi + private GPU PC worker`
+- `Cloudflare Tunnel + Nginx on Raspberry Pi + private GPU PC worker`
 
 That gives you:
 
@@ -406,7 +507,13 @@ That gives you:
 - private inference machine
 - cleaner path toward a real public beta
 
-## 16. First Implementation Milestone
+For portfolio value, layer in:
+
+- `Docker Compose` for the Pi-side application services
+- `systemd` for `cloudflared` and host autostart behavior
+- explicit docs for architecture, environment variables, and deployment steps
+
+## 17. First Implementation Milestone
 
 The first milestone I would build toward is:
 
@@ -420,14 +527,30 @@ Success means:
 - `faster-whisper` and `GPT-SoVITS` stay on the PC
 - the system survives disconnects and process restarts
 
-## 17. Repo Follow-up Work
+## 18. Learning-Oriented Action Plan
+
+If your goal is to learn in a strong order, do the work in this sequence:
+
+1. make the WebSocket endpoint configurable
+2. split the backend into gateway and worker
+3. add `Nginx` on the Pi and proxy `wss` correctly
+4. add `Docker Compose` for Pi-side app services
+5. add `systemd` for host-managed startup and restart behavior
+6. add health checks, structured logs, and queue controls
+7. add auth and rate limiting
+8. add diagrams and deployment walkthrough docs
+
+This order teaches the most useful concepts without stalling early on infrastructure overhead.
+
+## 19. Repo Follow-up Work
 
 The next implementation sequence for this repo should be:
 
 1. make WebSocket endpoint configurable in the frontend
 2. split the backend into gateway and worker roles
-3. add health endpoints and structured logs
-4. add Pi proxy config and service definitions
+3. add Pi proxy config and service definitions
+4. add health endpoints and structured logs
 5. add public auth and rate limiting
+6. add architecture and deployment docs that explain the design
 
-That is the point where the project moves from a local MVP to a self-hosted production-minded deployment.
+That is the point where the project moves from a local MVP to a self-hosted production-minded and portfolio-quality deployment.

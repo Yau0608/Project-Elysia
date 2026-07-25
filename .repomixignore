@@ -1,0 +1,24 @@
+*.fbx
+*.asset
+*.anim
+*.pmx
+*.meta
+*.controller
+*.mat
+*.bytes
+
+# Unity Scenes, Prefabs, and Settings
+*.unity
+*.prefab
+*.mat
+*.meta
+*.guids
+
+# Data & Model Logs
+*.csv
+*.xml
+
+# Sample/Vendor Assets (uLipSync, MMD4Mecanim)
+Frontend/Assets/uLipSync/
+Frontend/Assets/MMD4Mecanim/
+Frontend/Assets/Plugins/

@@ -52,3 +52,10 @@ venv/
 /[Ff]rontend/[Aa]ssets/MMD4Mecanim/Plugins/**/Android/
 /[Ff]rontend/[Aa]ssets/MMD4Mecanim/Plugins/**/*.bundle/
 /[Ff]rontend/[Aa]ssets/MMD4Mecanim/Plugins/**/*.dylib
+
+# =========================
+# REPOMIX & AI EXPORTS
+# =========================
+repomix-output.xml
+repomix-output.txt
+repomix.json
