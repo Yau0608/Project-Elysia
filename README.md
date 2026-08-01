@@ -98,4 +98,7 @@ The current version is a successful Minimum Viable Product (MVP). The next phase
 -   [ ] **Implement Animation Intensity:** Refactor the animation controllers to use `float` parameters instead of `triggers`, allowing the LLM to control the *intensity* of expressions and gestures for more nuanced performances.
 -   [ ] **(Experimental) MCP Integration:** Investigate migrating the communication layer to the Model Context Protocol (MCP) for deeper, stateful integration with the Unity client.
 
+## Known Issues & Fixes
+
+Bug: Cyrene is invisible on Android. Fix: MMD shaders break on Vulkan. Go to Player Settings -> Android -> Remove Vulkan and use OpenGLES3.
 ---

@@ -1812,6 +1812,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a4a214d964fa564da3367278605d992, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serverIp: 100.120.228.48
+  serverPort: 8765
   characterAnimator: {fileID: 359566719}
   expressionController: {fileID: 359566718}
   gestureController: {fileID: 359566733}

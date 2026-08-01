@@ -61,6 +61,9 @@ public class ElysiaStreamEvent
 
 public class ConnectionManager : MonoBehaviour
 {
+
+    [SerializeField] private string serverIp = "127.0.0.1"; 
+    [SerializeField] private string serverPort = "8765";
     WebSocket websocket;
 
     // --- Step 2: Add references for our new components ---
@@ -193,7 +196,8 @@ public class ConnectionManager : MonoBehaviour
     async void ConnectToServer()
     {
         
-        websocket = new WebSocket("ws://localhost:8765");
+        string wsUrl = $"ws://{serverIp}:{serverPort}";
+        websocket = new WebSocket(wsUrl);
 
         websocket.OnOpen += () => { Debug.Log("[1] Connection open!"); };
         websocket.OnError += (e) => { Debug.Log("[ERROR] " + e); };
