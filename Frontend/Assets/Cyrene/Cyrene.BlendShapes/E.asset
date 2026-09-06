@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37562b39ff933b245ac2f35d87edbcd6, type: 3}
   m_Name: E
   m_EditorClassIdentifier: 
-  m_prefab: {fileID: 0}
+  m_prefab: {fileID: 7798828859840746070, guid: 0db7a3c32bc7af54e873bbe70af32d23, type: 3}
   BlendShapeName: E
   Preset: 5
-  Values: []
+  Values:
+  - RelativePath: U_Char/U_Char_1
+    Index: 31
+    Weight: 100
   MaterialValues: []
   IsBinary: 0
